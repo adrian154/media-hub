@@ -16,8 +16,7 @@ const updateStatus = function() {
             `Image ${cur + 1} / ${posts.length}<br>` +
             `<a href="https://reddit.com${post.data.permalink}">${post.data.title}</a><br>` +
             `Posted in <a href="https://reddit.com/r/${post.data.subreddit}">r/${post.data.subreddit}</a> by <a href="https://reddit.com/u/${post.data.author}">u/${post.data.author}</a><br>` +
-            `${post.data.score} upvotes (${post.data.upvote_ratio * 100}%)<br>` +
-            `is_self: ${post.data.is_self}, is_video: ${post.data.is_video}, hint: ${post.data.post_hint}`;
+            `${post.data.score} upvotes (${post.data.upvote_ratio * 100}%)<br>`;
         status.innerHTML = text;
     }
 
