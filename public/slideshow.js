@@ -66,18 +66,19 @@ const loadMorePosts = function(after) {
 
     getSaved(after).then(obj => {
 
+        // add the new posts
         posts = posts.concat(obj.data.children);
 
+        // insert the DOM elements for each post
         obj.data.children.map(child => {
 
-
-            // Add elements
+            // create the parent slide
             let div = document.createElement("div");
             div.style.opacity = "0";
             div.classList.add("slide");
 
-            // if media embed, create. otherwise, assume it's an image.
-            if(Object.keys(child.data.media_embed).length === 0) {
+            // if media_embed is missing, assume the post is an image
+            if(typeof child.data.media_embed === "object" && Object.keys(child.data.media_embed).length === 0) {
 
                 let img = document.createElement("img");
                 img.src = child.data.url;
@@ -100,6 +101,7 @@ const loadMorePosts = function(after) {
 
             } else {
 
+                // otherwise, it's a media embed
                 let elem = new DOMParser().parseFromString(convertEmbed(child.data.media_embed.content), "text/html").body.childNodes[0];
                 elem.style.width = child.data.media_embed.width + "px";
                 elem.style.height = child.data.media_embed.height + "px";
@@ -109,10 +111,12 @@ const loadMorePosts = function(after) {
 
             }
 
+            // add the slide
             slideshow.appendChild(div);
 
         });
 
+        // if initial, move
         if(!ready) {
             ready = true;
             move(0);
@@ -122,6 +126,7 @@ const loadMorePosts = function(after) {
         updateStatus();
 
     });
+
 };
 
 const move = function(dir) {
@@ -134,6 +139,9 @@ const move = function(dir) {
     // move
     cur += dir;
     cur = (cur + elems.length) % elems.length;
+
+    // update url
+    window.location = "#" + cur;
 
     // do fades
     hide(elems[(cur - dir + elems.length) % elems.length]);
@@ -157,3 +165,5 @@ window.addEventListener("keydown", (event) => {
 
 updateStatus();
 loadMorePosts();
+
+//setInterval(() => move(1), 1000);
