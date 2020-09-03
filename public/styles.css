@@ -1,0 +1,64 @@
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #222222;
+}
+
+#slideshow {
+    width: 100%;
+    height: 100%;
+}
+
+#slideshow div {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    width: 100%;
+    height: 100%;
+    transition: opacity 1s;
+}
+
+#slideshow p {
+    font-family: monospace;
+    color: #ffffff;
+}
+
+.embed {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#status, #bottom-status {
+    position: absolute;
+    left: 0px;
+    margin: 0;
+    padding: 0.3em;
+    font-family: monospace;
+    color: #555555;
+    font-size: 1.2em;
+    z-index: 2;
+}
+
+#status {
+    top: 0px;
+}
+
+#bottom-status {
+    bottom: calc(1.0em);
+}
+
+#status a, a:visited {
+    color: #1ba3f7;
+    text-decoration: none;
+}
+
+#status a:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}

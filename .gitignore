@@ -1,0 +1,3 @@
+# a few obvious suspects...
+node_modules/
+credentials.json
