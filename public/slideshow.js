@@ -16,7 +16,8 @@ const updateStatus = function() {
             `Image ${cur + 1} / ${posts.length}<br>` +
             `<a href="https://reddit.com${post.data.permalink}">${post.data.title}</a><br>` +
             `Posted in <a href="https://reddit.com/r/${post.data.subreddit}">r/${post.data.subreddit}</a> by <a href="https://reddit.com/u/${post.data.author}">u/${post.data.author}</a><br>` +
-            `${post.data.score} upvotes (${post.data.upvote_ratio * 100}%)`;
+            `${post.data.score} upvotes (${post.data.upvote_ratio * 100}%)<br>` +
+            `is_self: ${post.data.is_self}, is_video: ${post.data.is_video}, hint: ${post.data.post_hint}`;
         status.innerHTML = text;
     }
 
@@ -55,10 +56,6 @@ const hide = function(DOMElement) {
     DOMElement.style.opacity = "0";
 };
 
-const convertEmbed = function(embed) {
-    return embed.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
-};
-
 const loadMorePosts = function(after) {
     
     working = true;
@@ -77,8 +74,8 @@ const loadMorePosts = function(after) {
             div.style.opacity = "0";
             div.classList.add("slide");
 
-            // if media_embed is missing, assume the post is an image
-            if(typeof child.data.media_embed === "object" && Object.keys(child.data.media_embed).length === 0) {
+            // post_hint has info about what the post is
+            if(child.data.post_hint === "image") {
 
                 let img = document.createElement("img");
                 img.src = child.data.url;
@@ -99,14 +96,21 @@ const loadMorePosts = function(after) {
 
                 div.appendChild(img);
 
-            } else {
+            } else if(typeof child.data.media_embed === "object" && Object.keys(child.data.media_embed).length > 0) {
 
                 // otherwise, it's a media embed
-                let elem = new DOMParser().parseFromString(convertEmbed(child.data.media_embed.content), "text/html").body.childNodes[0];
+                let elem = new DOMParser().parseFromString(child.data.media_embed.content, "text/html").body.childNodes[0];
                 elem.style.width = child.data.media_embed.width + "px";
                 elem.style.height = child.data.media_embed.height + "px";
                 elem.classList.add("embed");
+                div.appendChild(elem);
+                
+            } else {
 
+                // not supported
+                let elem = document.createElement("p");
+                elem.appendChild(document.createTextNode("Oops! Viewing this type of content is currently not supported."));
+                elem.classList.add("embed");
                 div.appendChild(elem);
 
             }

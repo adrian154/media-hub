@@ -47,7 +47,7 @@ const getSaved = async function(username, token, after_id) {
     let response = await makeRequest({
         hostname: "oauth.reddit.com",
         port: 443,
-        path: `/user/${username}/saved${after_id !== undefined ? `?after=${after_id}` : ""}`,
+        path: `/user/${username}/saved?raw_json=1${after_id !== undefined ? `&after=${after_id}` : ""}`,
         method: "GET",
         headers: {
             "User-Agent": "joey-the-bot", // again, ratelimiting
