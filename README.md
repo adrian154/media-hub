@@ -7,7 +7,7 @@ I have a lot of images/GIFs saved on Reddit, and I wanted to look at all of them
 # How to Use
 
 1. Clone the repo.
-2. [Install NodeJS](https://nodejs.org/en/download/).
+2. [Install NodeJS](https://nodejs.org/en/download/). Run `npm install` from a terminal in the root folder of the repo.
 3. Go to Reddit.
 4. Click "preferences"
 
