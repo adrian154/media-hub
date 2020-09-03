@@ -23,7 +23,7 @@ const app = express();
 
 app.use("/", express.static("./public"));
 app.get("/saved", async (req, res) => {
-    let saved = await reddit.getSaved(tokenOptions[0], accessToken, req.query.after);
+    let saved = await reddit.getSaved(credentials.username, accessToken, req.query.after);
     res.send(JSON.stringify(saved));
 });
 
