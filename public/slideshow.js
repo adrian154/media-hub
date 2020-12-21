@@ -226,5 +226,9 @@ window.addEventListener("keyup", (event) => {
     }
 });
 
+window.addEventListener("wheel", (event) => {
+    move(Math.sign(event.deltaY));
+});
+
 updateStatus();
 loadMorePosts().then(() => goto(0));

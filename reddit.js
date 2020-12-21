@@ -28,7 +28,7 @@ const requestToken = async function(username, password, clientID, clientSecret) 
         method: "POST",
         headers: {
             "User-Agent": "joey-the-bot", // necessary to avoid ratelimiting
-            "Authorization": `Basic ${new Buffer(clientID + ":" + clientSecret).toString("base64")}`
+            "Authorization": `Basic ${Buffer.from(clientID + ":" + clientSecret).toString("base64")}`
         }
     });
 
@@ -48,7 +48,7 @@ const getSaved = async function(username, token, after_id) {
         hostname: "oauth.reddit.com",
         port: 443,
         path: `/user/${username}/saved?limit=50&raw_json=1${after_id !== undefined ? `&after=${after_id}` : ""}`,
-        //path: `/r/subgoeshere/${username}/top?limit=50&raw_json=1${after_id !== undefined ? `&after=${after_id}` : ""}`,
+        //path: `/r/asdf/top?limit=50&raw_json=1${after_id !== undefined ? `&after=${after_id}` : ""}`,
         method: "GET",
         headers: {
             "User-Agent": "joey-the-bot", // again, ratelimiting
