@@ -19,16 +19,16 @@ const makeRequest = async function(options) {
 };
 
 // Request access token
-const requestToken = async function(username, password, clientID, clientSecret) {
+const requestToken = async function(credentials) {
 
     let response = await makeRequest({
         hostname: "www.reddit.com",
         port: 443,
-        path: `/api/v1/access_token?grant_type=password&username=${username}&password=${password}`,
+        path: `/api/v1/access_token?grant_type=password&username=${credentials.username}&password=${credentials.password}`,
         method: "POST",
         headers: {
             "User-Agent": "joey-the-bot", // necessary to avoid ratelimiting
-            "Authorization": `Basic ${Buffer.from(clientID + ":" + clientSecret).toString("base64")}`
+            "Authorization": `Basic ${Buffer.from(credentials.clientID + ":" + credentials.clientSecret).toString("base64")}`
         }
     });
 
@@ -42,13 +42,13 @@ const tokenToAuthHeader = function(token) {
 };
 
 // Get saved posts
-const getSaved = async function(username, token, after_id) {
+// Feed could be "/user/username/saved" or "/r/mysubreddit/top", etc.
+const getPosts = async function(feed, token, after_id) {
 
     let response = await makeRequest({
         hostname: "oauth.reddit.com",
         port: 443,
-        path: `/user/${username}/saved?limit=50&raw_json=1${after_id !== undefined ? `&after=${after_id}` : ""}`,
-        //path: `/r/asdf/top?limit=50&raw_json=1${after_id !== undefined ? `&after=${after_id}` : ""}`,
+        path: `${feed}?limit=50&raw_json=1${after_id !== undefined ? `&after=${after_id}` : ""}`,
         method: "GET",
         headers: {
             "User-Agent": "joey-the-bot", // again, ratelimiting
@@ -62,5 +62,5 @@ const getSaved = async function(username, token, after_id) {
 
 module.exports = {
     requestToken: requestToken,
-    getSaved: getSaved
+    getPosts: getPosts
 };

@@ -14,21 +14,19 @@ const updateStatus = function() {
     if(posts.length > 0) {
         let post = posts[cur];
         let text =
-            `Image ${cur + 1} / ${posts.length}<br>` +
-            `<a href="https://reddit.com${post.permalink}">${post.title}</a><br>` +
-            `Posted in <a href="https://reddit.com/r/${post.subreddit}">r/${post.subreddit}</a> by <a href="https://reddit.com/u/${post.author}">u/${post.author}</a><br>` +
+            `(${cur + 1} / ${posts.length}) <a href="https://reddit.com${post.permalink}">${post.title}</a><br>` +
             `${post.score} upvotes (${post.upvote_ratio * 100}%)<br>`;
         status.innerHTML = text;
     }
 
-    let bottomText = `Left/Right arrow to navigate.`;
+    let bottomText = `Left/Right arrow to navigate.<br>Ctrl+L to load more, Ctrl+G to jump`;
     bottomStatus.innerHTML = bottomText;
 
 };
 
 // get more saved posts
-const getSaved = async function(after) {
-    let response = await fetch(`/saved${after !== undefined ? `?after=${after}` : ""}`);
+const getPosts = async function(after) {
+    let response = await fetch(`feed${after !== undefined ? `?after=${after}` : ""}`);
     return response.json();
 };
 
@@ -84,53 +82,45 @@ const postToSlide = function(post) {
 
 };
 
-const loadMorePosts = function(after) {
+const loadMorePosts = async function(after) {
 
     if(loading) return;
     loading = true;
 
-    return new Promise((resolve, reject) => {
+    let obj = await getPosts(after);
+    for(let child of obj.data.children) {
 
-        getSaved(after).then(obj => {
+        let post;
+        if(child.data.post_hint === "image") {
+            post = {
+                type: "image",
+                url: child.data.url
+            };
+        } else if(typeof child.data.media_embed === "object" && Object.keys(child.data.media_embed).length > 0) {
+            post = {
+                type: "embed",
+                width: child.data.media_embed.width,
+                height: child.data.media_embed.height,
+                content: child.data.media_embed.content
+            };
+        } else {
+            continue;
+        }
 
-            for(let child of obj.data.children) {
+        post.permalink = child.data.permalink;
+        post.title = child.data.title;
+        post.subreddit = child.data.subreddit;
+        post.author = child.data.author;
+        post.score = child.data.score;
+        post.upvote_ratio = child.data.upvote_ratio;
+        post.name = child.data.name;
 
-                let post;
-                if(child.data.post_hint === "image") {
-                    post = {
-                        type: "image",
-                        url: child.data.url
-                    };
-                } else if(typeof child.data.media_embed === "object" && Object.keys(child.data.media_embed).length > 0) {
-                    post = {
-                        type: "embed",
-                        width: child.data.media_embed.width,
-                        height: child.data.media_embed.height,
-                        content: child.data.media_embed.content
-                    };
-                } else {
-                    continue;
-                }
+        posts.push(post);
 
-                post.permalink = child.data.permalink;
-                post.title = child.data.title;
-                post.subreddit = child.data.subreddit;
-                post.author = child.data.author;
-                post.score = child.data.score;
-                post.upvote_ratio = child.data.upvote_ratio;
-                post.name = child.data.name;
+    }
 
-                posts.push(post);
-
-            }
-
-            loading = false;
-            updateStatus();
-            resolve();
-
-        });
-
-    });
+    loading = false;
+    updateStatus();
 
 };
 

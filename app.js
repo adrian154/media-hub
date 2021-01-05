@@ -1,19 +1,14 @@
 const express = require("express");
 const reddit = require("./reddit.js");
-const credentials = require("./credentials.json");
+const config = require("./config.json");
 
 // reddit API accessing rearend
 let accessToken;
 
 const refreshToken = async function() {
-    reddit.requestToken(credentials.username, credentials.password, credentials.clientID, credentials.clientSecret)
-        .then((token) => {
-            accessToken = token;
-            setTimeout(refreshToken, token.expires_in * 1000);
-        })
-        .catch((error) => {
-            console.error(error);
-        });
+    let token = await reddit.requestToken(config.credentials);
+    accessToken = token;
+    setTimeout(refreshToken, token.expires_in * 1000);
 };
 
 refreshToken();
@@ -21,10 +16,36 @@ refreshToken();
 // user facing frontend
 const app = express();
 
-app.use("/", express.static("./public"));
-app.get("/saved", async (req, res) => {
-    let saved = await reddit.getSaved(credentials.username, accessToken, req.query.after);
-    res.send(JSON.stringify(saved));
+app.use("/", express.static("./static"));
+
+app.use((req, res, next) => {
+    console.log(req.path);
+    next();
+});
+
+// saved, hidden, etc.
+app.get("/:feed/feed", async (req, res) => {
+    res.json(await reddit.getPosts(
+        `/user/${config.credentials.username}/${req.params.feed}`,
+        accessToken,
+        req.query.after
+    ));
+});
+
+app.get("/:subreddit/:sort/feed", async (req, res) => {
+    res.json(await reddit.getPosts(
+        `/r/${req.params.subreddit}/${req.params.sort}`,
+        accessToken,
+        req.query.after
+    ));
+});
+
+app.get("/:feed/", (req, res) => {
+    res.sendFile(__dirname + "/html/index.html");
+});
+
+app.get("/:subreddit/:sort/", (req, res) => {
+    res.sendFile(__dirname + "/html/index.html");
 });
 
 // listen on localhost
