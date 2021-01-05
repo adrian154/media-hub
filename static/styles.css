@@ -10,9 +10,11 @@ html, body {
 #slideshow {
     width: 100%;
     height: 100%;
+    font-family: monospace;
+    color: #ffffff;
 }
 
-#slideshow div {
+#slideshow .slide {
     position: absolute;
     top: 0px;
     left: 0px;
@@ -21,11 +23,6 @@ html, body {
     width: 100%;
     height: 100%;
     transition: opacity 1s;
-}
-
-#slideshow p {
-    font-family: monospace;
-    color: #ffffff;
 }
 
 .embed {

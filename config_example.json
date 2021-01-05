@@ -2,7 +2,7 @@
     "app": {
         "port": 80
     },
-    "credentials": {
+    "user": {
         "username": "reddit_username_here",
         "password": "reddit_password_here",
         "clientID": "client_id_here",
