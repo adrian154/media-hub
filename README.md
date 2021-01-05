@@ -1,5 +1,5 @@
-# reddit-saved-slideshow
-See your saved Reddit posts as a slideshow.
+# reddit-media-slideshow
+See Reddit media posts as a nice slideshow.
 
 # Why?
 I have a lot of images/GIFs saved on Reddit, and I wanted to look at all of them in a slideshow so I made this tool. The setup is tedious and its capabilities are limited, so I don't expect you to use this tool. If you're really desperate, you might find it useful.
