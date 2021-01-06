@@ -18,11 +18,6 @@ const app = express();
 
 app.use("/", express.static("./static"));
 
-app.use((req, res, next) => {
-    console.log(req.path);
-    next();
-});
-
 // saved, hidden, etc.
 app.get("/:feed/feed", async (req, res) => {
     res.json(await reddit.getPosts(
