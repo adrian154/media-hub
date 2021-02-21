@@ -4,6 +4,7 @@ const bottomStatus = document.getElementById("bottom-status");
 const debug = document.getElementById("debug");
 
 let cur = 0; // current image index
+let feed = new URL(window.location).searchParams.get("feed");
 
 let posts = [];
 let postSlides = new Map();
@@ -15,7 +16,7 @@ const updateStatus = function() {
         let post = posts[cur];
         let text =
             `(${cur + 1} / ${posts.length}) <a href="https://reddit.com${post.permalink}">${post.title}</a><br>` +
-            `${post.score} upvotes (${post.upvote_ratio * 100}%)<br>`;
+            post.scoreStr;
         status.innerHTML = text;
     }
 
@@ -26,7 +27,7 @@ const updateStatus = function() {
 
 // get more saved posts
 const getPosts = async function(after) {
-    let response = await fetch(`feed${after !== undefined ? `?after=${after}` : ""}`);
+    let response = await fetch(`/feeds/${feed}${after !== undefined ? `?after=${after}` : ""}`);
     return response.json();
 };
 
@@ -84,43 +85,17 @@ const postToSlide = function(post) {
 
 const loadMorePosts = async function(after) {
 
+    console.log("Loading after " + after);
+
     if(loading) return;
     loading = true;
 
-    let obj = await getPosts(after);
-    for(let child of obj.data.children) {
-
-        let post;
-        if(child.data.post_hint === "image") {
-            post = {
-                type: "image",
-                url: child.data.url
-            };
-        } else if(typeof child.data.media_embed === "object" && Object.keys(child.data.media_embed).length > 0) {
-            post = {
-                type: "embed",
-                width: child.data.media_embed.width,
-                height: child.data.media_embed.height,
-                content: child.data.media_embed.content
-            };
-        } else {
-            continue;
-        }
-
-        post.permalink = child.data.permalink;
-        post.title = child.data.title;
-        post.subreddit = child.data.subreddit;
-        post.author = child.data.author;
-        post.score = child.data.score;
-        post.upvote_ratio = child.data.upvote_ratio;
-        post.name = child.data.name;
-
-        posts.push(post);
-
-    }
+    posts = posts.concat(await getPosts(after));
 
     loading = false;
     updateStatus();
+
+    console.log("Done");
 
 };
 
@@ -135,7 +110,7 @@ const goto = function(pos) {
     });
 
     // preload
-    for(let i = -5; i <= 5; i++) {
+    for(let i = -3; i <= 3; i++) {
         if(pos + i >= 0 && pos + i < posts.length && !postSlides.get(posts[pos + i])) {
             let elem = postToSlide(posts[pos + i]);
             postSlides.set(posts[pos + i], elem);
@@ -169,22 +144,16 @@ const move = function(dir) {
     // preload
     let prev = cur - dir * 5;
     let next = cur + dir * 5;
-    
-    console.log("== At " + cur);
 
     if(prev >= 0 && prev < posts.length) {
-        console.log("Trying to unload " + prev);
         if(postSlides.get(posts[prev])) {
-            console.log("Unloaded " + prev);
             postSlides.get(posts[prev]).remove();
             postSlides.delete(posts[prev]);
         }
     }
 
     if(next >= 0 && next < posts.length) {
-        console.log("Trying to load " + next);
         if(!postSlides.get(posts[next])) {
-            console.log("Loaded " + next);
             let elem = postToSlide(posts[next]);
             postSlides.set(posts[next], elem);
             slideshow.appendChild(elem);
@@ -193,7 +162,7 @@ const move = function(dir) {
 
     // if necessary, load more
     if(posts.length - cur < 10) {
-        loadMorePosts(posts[posts.length - 1].name);
+        loadMorePosts(posts[posts.length - 1].id);
     }
 
 };
@@ -205,7 +174,7 @@ window.addEventListener("keydown", (event) => {
         case "ArrowLeft": move(-1); break;
         case "ArrowRight": move(1); break;
         case "Control": ctrlHeld = true; break;
-        case "l": if(ctrlHeld) loadMorePosts(posts[posts.length - 1].name); event.preventDefault(); break;
+        case "l": if(ctrlHeld) loadMorePosts(posts[posts.length - 1].id); event.preventDefault(); break;
         case "g": if(ctrlHeld) goto(Number(prompt("Where to?"))); event.preventDefault(); break;
     }
 });
