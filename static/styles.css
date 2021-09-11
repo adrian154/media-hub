@@ -2,56 +2,66 @@ html, body {
     width: 100%;
     height: 100%;
     margin: 0;
-    padding: 0;
     background-color: #222222;
-    overflow-y: hidden;
 }
 
 #slideshow {
     width: 100%;
     height: 100%;
     font-family: monospace;
-    color: #ffffff;
+    font-size: 11pt;
+    color: #caa0a0;
 }
 
-#slideshow .slide {
+.slide {
+    display: flex;
     position: absolute;
-    top: 0px;
-    left: 0px;
-    right: 0px;
-    bottom: 0px;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    /*transition: opacity 0.3s ease-in-out;*/
+    visibility: hidden;
 }
 
-.embed {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+.shown {
+    visibility: visible;
 }
 
-#status, #bottom-status {
+.slide * {
+    position: relative !important; /* override absolute positioning on embeds */
+    margin: auto auto;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: 50% 50%;
+}
+
+.status-text {
     position: absolute;
-    left: 0px;
     margin: 0;
     padding: 0.3em;
     font-family: monospace;
-    color: #555555;
-    font-size: 1.2em;
+    color: rgba(255, 255, 255, 30%);
+    font-size: 11pt;
     z-index: 2;
 }
 
-#status {
-    top: 0px;
+#top-status {
+    left: 0;
+    top: 0;
 }
 
 #bottom-status {
-    bottom: calc(0.0em);
+    left: 0;
+    bottom: 0;
 }
 
-#status a, a:visited {
+#debug {
+    bottom: 0;
+    right: 0;
+}
+
+a, a:visited {
     color: #1ba3f7;
     text-decoration: none;
 }
