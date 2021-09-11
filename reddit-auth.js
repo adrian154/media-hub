@@ -7,10 +7,9 @@ module.exports = class {
         this.refreshToken(user);
     }
 
-    async refreshToken(user) {
-        this.token = await this.getNewToken(user);
-        console.log("got token");
-        setTimeout(this.refreshToken, (this.token.expires_in - 10) * 1000);
+    async refreshToken() {
+        this.token = await this.getNewToken(this.user);
+        setTimeout(() => this.refreshToken(), (this.token.expires_in - 10) * 1000);
     }
 
     async getNewToken(user) {
