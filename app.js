@@ -5,28 +5,19 @@ const express = require("express");
 const config = require("./config.json");
 const feeds = require("./feeds.js");
 
-console.log(feeds);
-
 // user facing frontend
 const app = express();
 
-app.use((req, res, next) => {
-    console.log(req.path);
-    next();
-});
+// serve static files
+app.use(express.static("./static"));
 
-app.use("/", express.static("./static"));
-
-// saved, hidden, etc.
+// serve feeds
 app.get("/feeds/:feed", async (req, res) => {
-    if(feeds[req.params.feed] != null)
+    if(feeds[req.params.feed]) {
         res.json(await feeds[req.params.feed].get(req.query.after));
-    else
-        res.json([]);
-});
-
-app.use((req, res, next) => {
-    res.status(200).sendFile(__dirname + "/html/index.html");
+    } else {
+        res.sendStatus(400);
+    }
 });
 
 // listen on localhost

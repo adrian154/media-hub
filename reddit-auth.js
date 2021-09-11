@@ -1,31 +1,30 @@
-const util = require("./util.js");
+const fetch = require("node-fetch");
 
 module.exports = class {
 
     constructor(user) {
+        this.user = user;
         this.refreshToken(user);
     }
 
     async refreshToken(user) {
-        this.token = await this.getToken(user);
-        setTimeout(this.refreshToken, (this.token.expires_in - 1) * 1000);
+        this.token = await this.getNewToken(user);
+        console.log("got token");
+        setTimeout(this.refreshToken, (this.token.expires_in - 10) * 1000);
     }
 
-    async getToken(user) {
-        return JSON.parse(await util.makeRequest({
-            hostname: "www.reddit.com",
-            port: 443,
-            path: `/api/v1/access_token?grant_type=password&username=${user.username}&password=${user.password}`,
+    async getNewToken(user) {
+        return (await fetch(`https://www.reddit.com/api/v1/access_token?grant_type=password&username=${user.username}&password=${user.password}`, {
             method: "POST",
             headers: {
-                "User-Agent": "reddit-media-slideshow", // necessary to avoid ratelimiting
+                "User-Agent": "mediahub",
                 "Authorization": `Basic ${Buffer.from(user.clientID + ":" + user.clientSecret).toString("base64")}`
             }
-        }));
+        })).json();
     }
 
-    getActiveToken() {
-        return this.token;
+    header() {
+        return this.token.token_type + " " + this.token.access_token;
     }
 
 }
