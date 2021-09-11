@@ -20,6 +20,10 @@ app.get("/feeds/:feed", async (req, res) => {
     }
 });
 
+app.use((req, res, next) => {
+    res.status(404).redirect("/not-found.html");
+});
+
 // listen on localhost
 app.listen(config.app.port, () => {
     console.log(`Now listening on port ${config.app.port}`);
