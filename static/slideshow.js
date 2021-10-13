@@ -1,5 +1,5 @@
 // constants
-const LOAD_RANGE = 3; // how far away a post can be before it gets unloaded
+const LOAD_RANGE = 8; // how far away a post can be before it gets unloaded
 
 // elements
 const slideshow = document.getElementById("slideshow");
@@ -11,26 +11,25 @@ const feed = new URL(window.location).searchParams.get("feed");
 
 const posts = [];
 const slides = new Map();
-let loading = false;
+let loading = false, error = false;
 
 const updateStatus = () => {
 
     if(posts.length > 0) {
         const post = posts[index];
-        const text = `(${index + 1} / ${posts.length}) <a href="${post.permalink}">${post.title || "(untitled)"}</a>`;
-        status.innerHTML = text;
+        status.innerHTML = `(${index + 1} / ${posts.length}) <a href="${post.permalink}">${post.title || "(untitled)"}</a>`;
     }
 
     if(loading) {
         debug.textContent = "Loading more...";
+    } else if(error) {
+        debug.textContent = "Failed to load more posts!";
+        debug.style.color = "#ff5959";
     } else {
         debug.textContent = "Idle.";
     }
 
 };
-
-// get more saved posts
-const fetchPosts = async (after) => (await fetch(`/feeds/${feed}${after ? `?after=${after}` : ""}`)).json();
 
 const htmlToDOM = (text) => {
     const template = document.createElement("template");
@@ -71,8 +70,14 @@ const loadMorePosts = async () => {
     loading = true;
     updateStatus();
 
-    console.log("loading more...");
-    posts.push(...await fetchPosts(posts[posts.length - 1]?.id));
+    const after = posts[posts.length - 1]?.id;
+    const resp = await fetch(`/feeds/${feed}${after ? `?after=${after}` : ""}`);
+    if(resp.ok) {
+        const newPosts = await resp.json();
+        posts.push(...newPosts);
+    } else {
+        error = true;
+    }
 
     loading = false;
     updateStatus();
