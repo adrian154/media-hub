@@ -1,16 +1,14 @@
-html, body {
-    width: 100%;
-    height: 100%;
+body {
+    width: 100vw;
+    height: 100vh;
     margin: 0;
     background-color: #222;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";    ;
 }
 
 #slideshow {
     width: 100%;
     height: 100%;
-    font-family: monospace;
-    font-size: 11pt;
-    color: #caa0a0;
 }
 
 .slide {
@@ -21,26 +19,42 @@ html, body {
     width: 100%;
     height: 100%;
     visibility: hidden;
+    overflow: scroll;
+}
+
+/* FIXME: compatibility with non-webkit browsers!! */
+.slide::-webkit-scrollbar {
+    display: none;
 }
 
 .shown {
-    visibility: visible;
+    visibility: visible !important;
 }
 
+/* positioning for slides */
 .slide * {
     position: relative !important; /* override absolute positioning on embeds */
-    margin: auto auto;
+    margin: auto;
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
     object-position: 50% 50%;
 }
 
+img {
+    cursor: zoom-in;
+}
+
+.zoomed-in {
+    max-width: initial;
+    max-height: initial;
+    cursor: zoom-out;
+}
+
 .status-text {
     position: absolute;
     margin: 0;
     padding: 0.3em;
-    font-family: monospace;
     color: rgba(255, 255, 255, 30%);
     font-size: 11pt;
     z-index: 2;
@@ -61,23 +75,24 @@ a, a:visited {
     text-decoration: none;
 }
 
-#status a:hover {
+a:hover {
     text-decoration: underline;
     cursor: pointer;
 }
 
+/* navigation arrows at the side */
 .handle {
     top: 50%;
-    height: 5.0em;
+    height: 3.0em;
     transform: translateY(-50%);
     border: 0;
     background-color: rgba(0, 0, 0, 30%);
-    color: #ccc;
-    font-weight: bold;
+    color: #aaa;
 }
 
 .handle:hover {
     color: #fff;
+    cursor: pointer;
 }
 
 #left-button {
@@ -88,4 +103,27 @@ a, a:visited {
 #right-button {
     position: fixed;
     right: 0;
+}
+
+#feeds-menu {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 30%);
+    color: #fff;
+    padding: 10px;
+    text-align: right;
+}
+
+#feeds {
+    display: none;
+}
+
+#feeds-menu:hover #feeds {
+    display: block;
+}
+
+#feeds span {
+    display: block;
+    padding: 2px;
 }

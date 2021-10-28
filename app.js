@@ -11,7 +11,11 @@ const app = express();
 // serve static files
 app.use(express.static("./static"));
 
-// serve feeds
+// serve a couple routes
+app.get("/feeds", async (req, res) => {
+    res.json(Object.keys(feeds));
+});
+
 app.get("/feeds/:feed", async (req, res) => {
     if(feeds[req.params.feed]) {
         res.json(await feeds[req.params.feed].get(req.query.after));

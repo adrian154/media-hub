@@ -13,20 +13,37 @@ const posts = [];
 const slides = new Map();
 let loading = false, error = false;
 
+const setupFeedsMenu = async () => {
+
+    const resp = await fetch("/feeds");
+    const feeds = await resp.json();
+
+    const feedsList = document.getElementById("feeds");
+    for(const feed of feeds) {
+        const elem = document.createElement("span");
+        const link = document.createElement("a");
+        link.href = `/?feed=${encodeURIComponent(feed)}`;
+        link.textContent = feed;
+        elem.append(link);
+        feedsList.append(elem);
+    }
+
+};
+
 const updateStatus = () => {
 
     if(posts.length > 0) {
         const post = posts[index];
-        status.innerHTML = `(${index + 1} / ${posts.length}) <a href="${post.permalink}">${post.title || "(untitled)"}</a>`;
+        status.innerHTML = `(${index + 1} / ${posts.length}) <a href="${post.permalink}">${post.title || "untitled"}</a>`;
     }
 
     if(loading) {
-        debug.textContent = "Loading more...";
+        debug.textContent = "Fetching posts...";
     } else if(error) {
         debug.textContent = "Failed to load more posts!";
         debug.style.color = "#ff5959";
     } else {
-        debug.textContent = "Idle.";
+        debug.textContent = "";
     }
 
 };
@@ -44,9 +61,16 @@ const createSlide = (post) => {
 
     if(post.type === "image") {
 
-        let img = document.createElement("img");
-        img.referrerPolicy = "no-referrer"; // TODO: does this fix loading issues?
+        const img = document.createElement("img");
+        
+        img.referrerPolicy = "no-referrer"; // hide our nefarious intentions :)
         img.src = post.url;
+        
+        img.addEventListener("click", (event) => {
+            img.classList.toggle("zoomed-in");
+        });
+
+        // add the image
         div.appendChild(img);
 
     } else if(post.type === "embed") {
@@ -89,6 +113,7 @@ const moveTo = (pos) => {
     if(pos < 0 || pos >= posts.length) return;
 
     // this loop is a big stinking turd
+    // remove old posts
     for(let i = 0; i < posts.length; i++) {
         
         const post = posts[i];
@@ -110,12 +135,13 @@ const moveTo = (pos) => {
 
     }
 
+    // show the current slide
     slides.get(posts[index])?.classList.remove("shown");
     index = pos;
     slides.get(posts[index])?.classList.add("shown");
 
+    // if we've gotten close to the end, start fetching more posts
     if(posts.length - index < LOAD_RANGE) loadMorePosts(); 
-
     updateStatus();
 
 };
@@ -139,8 +165,9 @@ window.addEventListener("keyup", (event) => {
 });
 
 window.addEventListener("wheel", (event) => {
-    moveTo(index + Math.sign(event.deltaY));
+    //moveTo(index + Math.sign(event.deltaY));
 });
 
 updateStatus();
+setupFeedsMenu();
 loadMorePosts().then(() => moveTo(0));
