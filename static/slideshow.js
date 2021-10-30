@@ -6,13 +6,20 @@ const slideshow = document.getElementById("slideshow");
 const status = document.getElementById("top-status");
 const debug = document.getElementById("debug");
 
-let index = 0; // current image index
-const feed = new URL(window.location).searchParams.get("feed");
+// parse url
+const url = new URL(window.location);
+const feedURL = `/feeds/${encodeURIComponent(url.searchParams.get("feed"))}`;
 
+// slideshow state
 const posts = [];
 const slides = new Map();
-let loading = false, error = false;
+let index = 0,
+    loading = false,
+    error = false,
+    zoomed = false,
+    shuffle = url.searchParams.get("shuffle");
 
+// set up list of feeds at the top
 const setupFeedsMenu = async () => {
 
     const resp = await fetch("/feeds");
@@ -30,6 +37,7 @@ const setupFeedsMenu = async () => {
 
 };
 
+// update the status indicator
 const updateStatus = () => {
 
     if(posts.length > 0) {
@@ -48,12 +56,14 @@ const updateStatus = () => {
 
 };
 
+// helper method (used with embeds)
 const htmlToDOM = (text) => {
     const template = document.createElement("template");
     template.innerHTML = text;
     return template.content.firstChild;
 };
 
+// create a slide element for a post
 const createSlide = (post) => {
 
     const div = document.createElement("div");
@@ -66,8 +76,16 @@ const createSlide = (post) => {
         img.referrerPolicy = "no-referrer"; // hide our nefarious intentions :)
         img.src = post.url;
         
+        img.addEventListener("load", (event) => {
+            if(img.naturalWidth > img.width || img.naturalHeight > img.height) {
+                img.classList.add("zoomable");
+            }
+        });
+
         img.addEventListener("click", (event) => {
-            img.classList.toggle("zoomed-in");
+            if(img.classList.contains("zoomable")) {
+                zoomed = div.classList.toggle("zoomed-in");
+            }
         });
 
         // add the image
@@ -87,15 +105,16 @@ const createSlide = (post) => {
 
 };
 
+// load more posts
 const loadMorePosts = async () => {
 
-    if(loading) return;
+    if(loading || shuffle) return;
 
     loading = true;
     updateStatus();
 
     const after = posts[posts.length - 1]?.id;
-    const resp = await fetch(`/feeds/${feed}${after ? `?after=${after}` : ""}`);
+    const resp = await fetch(`${feedURL}${after ? `?after=${after}` : ""}`);
     if(resp.ok) {
         const newPosts = await resp.json();
         posts.push(...newPosts);
@@ -106,6 +125,37 @@ const loadMorePosts = async () => {
     loading = false;
     updateStatus();
 
+};
+
+// used with shuffle
+const loadAllPosts = async () => {
+
+    let after;
+
+    while(true) {
+        const resp = await fetch(`${feedURL}${after ? `?after=${after}` : ""}`);  
+        const newPosts = await resp.json();
+        if(newPosts.length > 0) {
+            posts.push(...newPosts);
+            after = newPosts[newPosts.length - 1].id;
+        } else {
+            break;
+        }
+    }
+
+    // shuffle
+    for(let i = 0; i < posts.length - 2; i++) {
+        const j = Math.floor(Math.random() * (posts.length - i)) + i;
+        const temp = posts[j];
+        posts[j] = posts[i];
+        posts[i] = temp;
+    }
+
+};
+
+const shuffleRedirect = () => {
+    url.searchParams.set("shuffle", 1);
+    window.location.href = url.href;
 };
 
 const moveTo = (pos) => {
@@ -121,13 +171,11 @@ const moveTo = (pos) => {
 
         if(Math.abs(i - pos) > LOAD_RANGE) {
             if(slide) {
-                console.log(`unloading post at ${i} (at ${pos}, d=${pos-i})`);
                 slide.remove();
                 slides.delete(post);
                 slide = null;
             }
         } else if(!slides.get(post)) {
-            console.log(`reloading post at ${i}`);
             slide = createSlide(post);
             slides.set(post, slide);
             slideshow.appendChild(slide);
@@ -136,7 +184,14 @@ const moveTo = (pos) => {
     }
 
     // show the current slide
-    slides.get(posts[index])?.classList.remove("shown");
+    const current = slides.get(posts[index]);
+
+    // unzoom and hide
+    current.classList.remove("shown");
+    current.classList.remove("zoomed-in");
+    zoomed = false;
+
+    // move
     index = pos;
     slides.get(posts[index])?.classList.add("shown");
 
@@ -165,9 +220,12 @@ window.addEventListener("keyup", (event) => {
 });
 
 window.addEventListener("wheel", (event) => {
-    //moveTo(index + Math.sign(event.deltaY));
+
+    // disable scroll navigation during zoom 
+    if(!zoomed) moveTo(index + Math.sign(event.deltaY));
+    
 });
 
-updateStatus();
+// initialize everything
 setupFeedsMenu();
-loadMorePosts().then(() => moveTo(0));
+(shuffle ? loadAllPosts() : loadMorePosts()).then(() => moveTo(0));

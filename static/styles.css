@@ -41,11 +41,12 @@ body {
     object-position: 50% 50%;
 }
 
-img {
+/* zoom stuff */
+.zoomable {
     cursor: zoom-in;
 }
 
-.zoomed-in {
+.zoomed-in img {
     max-width: initial;
     max-height: initial;
     cursor: zoom-out;
@@ -105,6 +106,7 @@ a:hover {
     right: 0;
 }
 
+/* feeds menu stuff */
 #feeds-menu {
     position: absolute;
     top: 0;
@@ -125,5 +127,5 @@ a:hover {
 
 #feeds span {
     display: block;
-    padding: 2px;
+    font-size: 10pt;
 }
