@@ -1,9 +1,12 @@
+const config = require("../config.json").reddit;
+const RedditAuth = require("../reddit-auth.js");
 const fetch = require("node-fetch");
+
+const redditAuth = new RedditAuth(config);
 
 module.exports = class {
 
-    constructor(redditAuth, feedPath) {
-        this.auth = redditAuth;
+    constructor(feedPath) {
         this.feedPath = feedPath;
     }
 
@@ -13,7 +16,7 @@ module.exports = class {
             method: "GET",
             headers: {
                 "User-Agent": "mediahub",
-                "Authorization": await this.auth.header()
+                "Authorization": await redditAuth.header()
             }
         });
 
