@@ -132,6 +132,7 @@ const loadAllPosts = async () => {
 
     let after;
     loading = true;
+    updateStatus();
 
     while(true) {
         const resp = await fetch(`${feedURL}${after ? `?after=${after}` : ""}`);  
@@ -153,6 +154,7 @@ const loadAllPosts = async () => {
     }
 
     loading = false;
+    updateStatus();
 
 };
 
