@@ -17,7 +17,7 @@ module.exports = class {
     async listObjects(bucket, after) {
         return new Promise((resolve, reject) => {
             this.s3.listObjectsV2({
-                Bucket: "bithole-images",
+                Bucket: bucket,
                 StartAfter: after,
                 MaxKeys: 50
             }, (err, data) => {
