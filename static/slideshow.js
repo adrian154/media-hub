@@ -131,6 +131,7 @@ const loadMorePosts = async () => {
 const loadAllPosts = async () => {
 
     let after;
+    loading = true;
 
     while(true) {
         const resp = await fetch(`${feedURL}${after ? `?after=${after}` : ""}`);  
@@ -150,6 +151,8 @@ const loadAllPosts = async () => {
         posts[j] = posts[i];
         posts[i] = temp;
     }
+
+    loading = false;
 
 };
 
