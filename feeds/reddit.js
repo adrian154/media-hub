@@ -13,7 +13,7 @@ module.exports = class {
             method: "GET",
             headers: {
                 "User-Agent": "mediahub",
-                "Authorization": this.auth.header()
+                "Authorization": await this.auth.header()
             }
         });
 
