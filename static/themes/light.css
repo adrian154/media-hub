@@ -1,0 +1,16 @@
+:root {
+    
+    --background: #ffffff;
+    --font: sans-serif;
+    --status-color: #000000;
+    
+    --handle-bg: rgba(0, 0, 0, 30%);
+    --handle-fg: #aaaaaa;
+    --handle-fg-hover: #ffffff;
+    
+    --feeds-menu-bg: rgba(0, 0, 0, 15%);
+    --feeds-menu-fg: #ffffff;
+
+    --link-color: #1ba3f7;
+
+}

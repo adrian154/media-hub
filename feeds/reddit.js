@@ -10,9 +10,13 @@ module.exports = class {
         this.feedPath = feedPath;
     }
 
+    get name() {
+        return `Reddit (feed="${this.feedPath}")`;
+    }
+
     async get(after) {
 
-        const resp = await fetch(`https://oauth.reddit.com/${this.feedPath}?limit=50&raw_json=1${after ? `&after=${after}` : ""}`, {
+        const resp = await fetch(`https://oauth.reddit.com/${this.feedPath}?limit=100&raw_json=1${after ? `&after=${after}` : ""}`, {
             method: "GET",
             headers: {
                 "User-Agent": "mediahub",

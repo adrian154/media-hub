@@ -1,0 +1,16 @@
+:root {
+    
+    --background: #222222;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --status-color: rgba(255, 255, 255, 30%);
+    
+    --handle-bg: rgba(0, 0, 0, 30%);
+    --handle-fg: #aaaaaa;
+    --handle-fg-hover: #ffffff;
+    
+    --feeds-menu-bg: rgba(0, 0, 0, 30%);
+    --feeds-menu-fg: #ffffff;
+
+    --link-color: #1ba3f7;
+
+}

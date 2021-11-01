@@ -1,9 +1,7 @@
-// constants
-const LOAD_RANGE = 8; // how far away a post can be before it gets unloaded
-
 // elements
 const slideshow = document.getElementById("slideshow");
-const status = document.getElementById("top-status");
+const postPosition = document.getElementById("post-position");
+const postLink = document.getElementById("post-link");
 const debug = document.getElementById("debug");
 
 // parse url
@@ -19,41 +17,19 @@ let index = 0,
     zoomed = false,
     shuffle = url.searchParams.get("shuffle");
 
-// set up list of feeds at the top
-const setupFeedsMenu = async () => {
-
-    const resp = await fetch("/feeds");
-    const feeds = await resp.json();
-
-    const feedsList = document.getElementById("feeds");
-    for(const feed of feeds) {
-        const elem = document.createElement("span");
-        const link = document.createElement("a");
-        link.href = `/?feed=${encodeURIComponent(feed)}`;
-        link.textContent = feed;
-        elem.append(link);
-        feedsList.append(elem);
+// update the post info section
+const updatePostInfo = () => {
+    const post = posts[index];
+    if(post) {
+        postPosition.textContent = `${index + 1} / ${posts.length}`;
+        postLink.href = post.url;
+        postLink.textContent = post.title || "untitled";
     }
-
 };
 
-// update the status indicator
-const updateStatus = () => {
-
-    if(posts.length > 0) {
-        const post = posts[index];
-        status.innerHTML = `(${index + 1} / ${posts.length}) <a href="${post.permalink}">${post.title || "untitled"}</a>`;
-    }
-
-    if(loading) {
-        debug.textContent = "Fetching posts...";
-    } else if(error) {
-        debug.textContent = "Failed to load more posts!";
-        debug.style.color = "#ff5959";
-    } else {
-        debug.textContent = "";
-    }
-
+const setStatusText = (text, error) => {
+    debug.textContent = text || "";
+    debug.style.color = error ? "#ff5959" : "";
 };
 
 // helper method (used with embeds)
@@ -91,12 +67,20 @@ const createSlide = (post) => {
         // add the image
         div.appendChild(img);
 
+        if(FANCY_BACKGROUND) {
+            const bg = document.createElement("img");
+            bg.classList.add("background");
+            bg.src = post.url;
+            div.appendChild(bg);
+        }
+
     } else if(post.type === "embed") {
 
         const embed = post.embed;
         const element = htmlToDOM(post.embed.content);
         element.style.width = embed.width + "px";
         element.style.height = embed.height + "px";
+        element.style.position = "relative"; // ignore absolute positioning
         div.appendChild(element);
 
     }
@@ -111,7 +95,7 @@ const loadMorePosts = async () => {
     if(loading || shuffle) return;
 
     loading = true;
-    updateStatus();
+    setStatusText("Fetching more posts...");
 
     const after = posts[posts.length - 1]?.id;
     const resp = await fetch(`${feedURL}${after ? `?after=${after}` : ""}`);
@@ -123,38 +107,48 @@ const loadMorePosts = async () => {
     }
 
     loading = false;
-    updateStatus();
+    setStatusText();
 
 };
 
 // used with shuffle
 const loadAllPosts = async () => {
 
-    let after;
+    let after = null;
+    const shuffledPosts = [];
+    
+    // start loading
     loading = true;
-    updateStatus();
+    setStatusText("Collecting posts...");
 
     while(true) {
+
         const resp = await fetch(`${feedURL}${after ? `?after=${after}` : ""}`);  
         const newPosts = await resp.json();
+        
         if(newPosts.length > 0) {
-            posts.push(...newPosts);
-            after = newPosts[newPosts.length - 1].id;
+            shuffledPosts.push(...newPosts);
+            after = shuffledPosts[shuffledPosts.length - 1].id;
+            setStatusText(`Collecting posts... (${shuffledPosts.length})`);
         } else {
             break;
         }
+
     }
 
     // shuffle
-    for(let i = 0; i < posts.length - 2; i++) {
-        const j = Math.floor(Math.random() * (posts.length - i)) + i;
-        const temp = posts[j];
-        posts[j] = posts[i];
-        posts[i] = temp;
+    for(let i = 0; i < shuffledPosts.length - 2; i++) {
+        const j = Math.floor(Math.random() * (shuffledPosts.length - i)) + i;
+        const temp = shuffledPosts[j];
+        shuffledPosts[j] = shuffledPosts[i];
+        shuffledPosts[i] = temp;
     }
 
+    // add the shuffled posts to the 
+    posts.push(...shuffledPosts);
+
     loading = false;
-    updateStatus();
+    setStatusText();
 
 };
 
@@ -202,35 +196,6 @@ const moveTo = (pos) => {
 
     // if we've gotten close to the end, start fetching more posts
     if(posts.length - index < LOAD_RANGE) loadMorePosts(); 
-    updateStatus();
+    updatePostInfo();
 
 };
-
-let ctrlHeld = false;
-
-window.addEventListener("keydown", (event) => {
-    switch(event.key) {
-        case "ArrowLeft": moveTo(index - 1); break;
-        case "ArrowRight": moveTo(index + 1); break;
-        case "Control": ctrlHeld = true; break;
-        case "l": if(ctrlHeld) loadMorePosts(); event.preventDefault(); break;
-        case "g": if(ctrlHeld) moveTo(Number(prompt("Where to?"))); event.preventDefault(); break;
-    }
-});
-
-window.addEventListener("keyup", (event) => {
-    switch(event.key) {
-        case "Control": ctrlHeld = false; break;
-    }
-});
-
-window.addEventListener("wheel", (event) => {
-
-    // disable scroll navigation during zoom 
-    if(!zoomed) moveTo(index + Math.sign(event.deltaY));
-    
-});
-
-// initialize everything
-setupFeedsMenu();
-(shuffle ? loadAllPosts() : loadMorePosts()).then(() => moveTo(0));

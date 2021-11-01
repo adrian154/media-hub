@@ -7,6 +7,15 @@ const feeds = require("./feeds.js");
 
 // user facing frontend
 const app = express();
+if(config.proxy) app.enable("trust proxy");
+
+// print out some debug info for sanity purposes
+const version = require("child_process").execSync("git rev-parse --short HEAD").toString().trim();
+console.log(`Running MediaHub version ${version}`);
+console.log("Feeds:");
+for(const feed in feeds) {
+    console.log(`* ${feed}: ${feeds[feed].name}`);
+}
 
 // authentication middleware
 app.use((req, res, next) => {
@@ -19,7 +28,10 @@ app.use((req, res, next) => {
         if(parts[0] != "Basic") return res.sendStatus(401);
 
         const [username, password] = Buffer.from(parts[1], "base64").toString("utf-8").split(":");
-        if(config.users[username] !== password) return res.sendStatus(401);
+        if(config.users[username] !== password) {
+            console.log(`Failed auth (username "${username}" from ${req.ip})`);
+            return res.sendStatus(401);
+        }
 
         next();
 
@@ -47,10 +59,10 @@ app.get("/feeds/:feed", async (req, res) => {
 
 // catch errant requests
 app.use((req, res, next) => {
-    res.status(404).redirect("/not-found.html");
+    res.redirect("/");
 });
 
 // listen on localhost
-app.listen(config.app.port, () => {
-    console.log(`Now listening on port ${config.app.port}`);
+app.listen(config.port, () => {
+    console.log(`Now listening on port ${config.port}`);
 });
