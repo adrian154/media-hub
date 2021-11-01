@@ -1,8 +1,13 @@
+const CHUNK_SIZE = 5;
+
 module.exports = class {
 
-    constructor(list, count) {
+    constructor(list) {
         this.list = list;
-        this.count = count || 5;
+    }
+
+    get name() {
+        return `URL x ${this.list.length}`;
     }
 
     async get(after) {
@@ -16,9 +21,9 @@ module.exports = class {
                 return [];
             }
 
-            urls = this.list.slice(after + 1, Math.min(this.list.length, after + 1 + this.count));
+            urls = this.list.slice(after + 1, Math.min(this.list.length, after + 1 + CHUNK_SIZE));
         } else {
-            urls = this.list.slice(0, this.count);
+            urls = this.list.slice(0, CHUNK_SIZE);
         }
 
         return urls.map((url, index) => ({

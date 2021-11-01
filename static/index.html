@@ -3,7 +3,8 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" type="text/css" href="styles.css">
+        <link rel="stylesheet" href="styles.css">
+        <link rel="stylesheet" href="themes/default.css">
         <link rel="icon" type="image/png" href="favicon.png">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <title>Media Slideshow</title>
@@ -16,19 +17,26 @@
         <div id="feeds-menu">
             <span><a href="#">feeds</a></span>
             <div id="feeds">
+                <span><a href="/settings.html"><i>settings...</i></a></span>
                 <span><a href="javascript:shuffleRedirect()"><i>shuffle current...</i></a></span>
             </div>
         </div>
 
         <!-- Foward/back buttons -->
-        <button class="handle material-icons" id="left-button" onclick="moveTo(index - 1)">&#xe5cb;</button>
-        <button class="handle material-icons" id="right-button" onclick="moveTo(index + 1)">&#xe5cc;</button>
+        <button class="handle" id="left-button" onclick="moveTo(index - 1)"><span class="material-icons">&#xe5cb;</span></button>
+        <button class="handle" id="right-button" onclick="moveTo(index + 1)"><span class="material-icons">&#xe5cc;</span></button>
     
         <!-- Status texts-->
-        <p id="top-status" class="status-text"></p>
-        <p id="debug" class="status-text"></p>
+        <div id="post-info">
+            <span id="post-position" class="status-text"></span>
+            <span><a id="post-link"></a></span>
+        </div>
 
+        <span id="debug" class="status-text"></span>
+
+        <script type="text/javascript" src="options.js"></script>
         <script type="text/javascript" src="slideshow.js"></script>
+        <script type="text/javascript" src="controls.js"></script>
     
     </body>
 </html>

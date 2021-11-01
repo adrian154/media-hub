@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Settings</title>
+        <style>
+            body {
+                line-height: 1.7em;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Settings</h1>
+        <input type="checkbox" id="fancy-background"> <label for="fancy-background">Fancy background</label><br>
+        <input type="number" id="load-range" placeholder="Load range..."><br>
+        <label for="theme">Theme</label>
+        <select id="theme">
+            <option value="default">Default</option>
+            <option value="discord">Discord</option>
+            <option value="light">Light</option>
+        </select><br>
+        <button onclick="save()">Save settings</button>
+        <script src="options.js"></script>
+        <script>
+            const fancyBackground = document.getElementById("fancy-background");
+            const loadRange = document.getElementById("load-range");
+            const theme = document.getElementById("theme");
+
+            fancyBackground.checked = FANCY_BACKGROUND
+            loadRange.value = LOAD_RANGE;
+            theme.value = THEME;
+
+            const save = () => {
+                localStorage.setItem("loadRange", loadRange.value);
+                localStorage.setItem("fancyBackground", fancyBackground.checked);
+                localStorage.setItem("theme", theme.value);
+                window.history.back();
+            };
+        </script>
+    </body>
+</html>
