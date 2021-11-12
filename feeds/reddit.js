@@ -62,7 +62,8 @@ module.exports = class {
         const post = {
             permalink: new URL(redditPost.permalink, "https://reddit.com").href, // probably unnecessary to use URL for this
             title: redditPost.title,
-            id: redditPost.name
+            id: redditPost.name,
+            tags: [redditPost.subreddit, redditPost.author]
         };
 
         if(redditPost.post_hint === "image") {
