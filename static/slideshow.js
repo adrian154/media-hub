@@ -4,22 +4,22 @@ const postPosition = document.getElementById("post-position");
 const postLink = document.getElementById("post-link");
 const debug = document.getElementById("debug");
 
-// parse url
+// url parsing
 const url = new URL(window.location);
 const feedURL = `/feeds/${encodeURIComponent(url.searchParams.get("feed"))}`;
-const shuffle = url.searchParams.get("shuffle");
-
-// filter stuff
+const shuffle = Boolean(url.searchParams.get("shuffle"));
 const filter = url.searchParams.get("filter")?.split(" ");
+
+// do we need to load all the posts first to process them?
 const loadAll = shuffle || filter;
 
 // slideshow state
-const posts = [];
-const slides = new Map();
-let index = 0,
-    loading = false,
-    error = false,
-    zoomed = false;
+const posts = []; // the list of posts as received from the server
+const displayedPosts = new Map();
+
+let index = 0, // position in slideshow
+    loading = false, // are more posts being fetched?
+    zoomed = false; // is the user zoomed in?
 
 // update the post info section
 const updatePostInfo = () => {
@@ -36,16 +36,10 @@ const setStatusText = (text, error) => {
     debug.style.color = error ? "#ff5959" : "";
 };
 
-// helper method (used with embeds)
-const htmlToDOM = (text) => {
-    const template = document.createElement("template");
-    template.innerHTML = text;
-    return template.content.firstChild;
-};
+// turn a post into HTML elements
+const createPost = (post) => {
 
-// create a slide element for a post
-const createSlide = (post) => {
-
+    // slideshow element
     const div = document.createElement("div");
     div.classList.add("slide");
 
@@ -53,23 +47,26 @@ const createSlide = (post) => {
 
         const img = document.createElement("img");
         
-        img.referrerPolicy = "no-referrer"; // hide our nefarious intentions :)
+        img.referrerPolicy = "no-referrer"; // necessary to avoid ratelimiting sometimes
         img.src = post.url;
         
         img.addEventListener("load", (event) => {
-            if(img.naturalWidth > img.width || img.naturalHeight > img.height) {
+
+            // if the image is too small mark it as zoomable
+            div.appendChild(img);
+            const box = img.getBoundingClientRect();
+            if(img.naturalWidth > box.width || img.naturalHeight > box.height) {
                 img.classList.add("zoomable");
             }
+
         });
 
+        // zoom handler
         img.addEventListener("click", (event) => {
             if(img.classList.contains("zoomable")) {
                 zoomed = div.classList.toggle("zoomed-in");
             }
         });
-
-        // add the image
-        div.appendChild(img);
 
         if(FANCY_BACKGROUND) {
             const bg = document.createElement("img");
@@ -81,11 +78,20 @@ const createSlide = (post) => {
     } else if(post.type === "embed") {
 
         const embed = post.embed;
-        const element = htmlToDOM(post.embed.content);
-        element.style.width = embed.width + "px";
-        element.style.height = embed.height + "px";
-        element.style.position = "relative"; // ignore absolute positioning
+
+        // create element
+        const element = document.createElement("div");
+        element.classList.add("embed");
+        element.insertAdjacentHTML("afterbegin", embed.content);
+
+        // let twitter handle sizing on its own
+        if(!element.firstChild?.classList.contains("twitter-video")) {
+            element.style.width = embed.width + "px";
+            element.style.height = embed.height + "px";
+        }
+
         div.appendChild(element);
+        twttr.widgets.load(element);
 
     }
 
@@ -94,7 +100,7 @@ const createSlide = (post) => {
 };
 
 // load more posts
-const loadMorePosts = async () => {
+const fetchMorePosts = async () => {
 
     if(loading || loadAll) return;
 
@@ -140,12 +146,10 @@ const loadAllPosts = async () => {
 
     }
 
-    // filters work for post type too :)
+    // filters also include the post type as a tag
     if(filter) {
         shuffledPosts = shuffledPosts.filter(post => post.tags?.reduce((a, tag) => a || filter.includes(tag), false) || filter.includes(post.type));
     }
-
-    console.log(shuffledPosts);
 
     if(shuffle) {
         for(let i = 0; i < shuffledPosts.length - 2; i++) {
@@ -156,7 +160,7 @@ const loadAllPosts = async () => {
         }
     }
 
-    // add the shuffled posts to the 
+    // append shuffled posts
     posts.push(...shuffledPosts);
 
     loading = false;
@@ -164,48 +168,59 @@ const loadAllPosts = async () => {
 
 };
 
-const moveTo = (pos) => {
+const moveTo = (destPos) => {
 
-    if(pos < 0 || pos >= posts.length) return;
+    if(destPos < 0 || destPos >= posts.length) return;
 
-    // this loop is a big stinking turd
-    // remove old posts
-    for(let i = 0; i < posts.length; i++) {
-        
-        const post = posts[i];
-        let slide = slides.get(post);
+    // remove posts that are too far from the current one
+    for(const [position, post] of displayedPosts.entries()) {
+        if(Math.abs(position - destPos) > LOAD_RANGE) {
+            post.element?.remove();
+            displayedPosts.delete(position);
+        }
+    }
 
-        if(Math.abs(i - pos) > LOAD_RANGE) {
-            if(slide) {
-                slide.remove();
-                slides.delete(post);
-                slide = null;
-            }
-        } else if(!slides.get(post)) {
-            slide = createSlide(post);
-            slides.set(post, slide);
-            slideshow.appendChild(slide);
+    // load new posts if necessary
+    for(let offset = -LOAD_RANGE; offset <= LOAD_RANGE; offset++) {
+
+        const pos = destPos + offset;
+        if(displayedPosts.has(pos)) {
+            continue;
+        }
+
+        const post = posts[pos];
+        if(post) {
+            const data = {post};
+            data.slide = createPost(post);
+            slideshow.append(data.slide);
+            displayedPosts.set(pos, data);
         }
 
     }
 
-    // show the current slide
-    const current = slides.get(posts[index]);
-
-    // unzoom and hide
-    if(current) {
-        current.classList.remove("shown");
-        current.classList.remove("zoomed-in");
+    // clean up previous slide and hide it
+    const old = displayedPosts.get(index);
+    if(old.slide && destPos !== index) {
+        old.slide.classList.remove("shown");
+        old.slide.classList.remove("zoomed-in");
     }
 
+    // re-enable scroll nav
     zoomed = false;
 
-    // move
-    index = pos;
-    slides.get(posts[index])?.classList.add("shown");
+    // update index
+    index = destPos;
+
+    // show new post
+    const current = displayedPosts.get(index);
+    current.slide.classList.add("shown");
 
     // if we've gotten close to the end, start fetching more posts
-    if(posts.length - index < LOAD_RANGE) loadMorePosts(); 
+    if(posts.length - index < LOAD_RANGE) fetchMorePosts(); 
+
+    // update post links
     updatePostInfo();
 
 };
+
+(loadAll ? loadAllPosts() : fetchMorePosts()).then(() => moveTo(0));

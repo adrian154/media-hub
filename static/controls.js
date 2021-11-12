@@ -55,4 +55,3 @@ window.addEventListener("wheel", (event) => {
 
 // initialize everything
 setupFeedsMenu();
-(loadAll ? loadAllPosts() : loadMorePosts()).then(() => moveTo(0));
