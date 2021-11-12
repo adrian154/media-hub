@@ -139,7 +139,7 @@ const loadAllPosts = async () => {
         if(newPosts.length > 0) {
             shuffledPosts.push(...newPosts);
             after = shuffledPosts[shuffledPosts.length - 1].id;
-            setStatusText(`Collecting posts... (${shuffledPosts.length})`);
+            setStatusText(`Collected ${shuffledPosts.length} posts...`);
         } else {
             break;
         }

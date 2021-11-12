@@ -95,7 +95,7 @@ module.exports = class {
 
     async get(after) {
 
-        const resp = await fetch(`${this.feedPath}?limit=10&raw_json=1${after ? `&after=${after}` : ""}`, {
+        const resp = await fetch(`${this.feedPath}?limit=50&raw_json=1${after ? `&after=${after}` : ""}`, {
             method: "GET",
             headers: {
                 "User-Agent": "mediahub",
