@@ -10,6 +10,7 @@ module.exports = class {
     async refreshToken() {
         
         if(!this.token || this.token.acquiredAt + this.token.expires_in * 1000 < Date.now()) {
+            console.log("Fetching new Reddit token...");
             return (this.token = await this.getNewToken());
         }
 

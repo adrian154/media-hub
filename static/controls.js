@@ -16,6 +16,17 @@ const setupFeedsMenu = async () => {
 
 };
 
+const promptFilter = () => {
+    url.searchParams.set("filter", prompt("Enter tags to filter by"));
+    window.location.href = url.href;
+};
+
+const shuffleRedirect = () => {
+    url.searchParams.set("shuffle", 1);
+    window.location.href = url.href;
+};
+
+
 // keyboard navigation
 let ctrlHeld = false;
 window.addEventListener("keydown", (event) => {
@@ -44,4 +55,4 @@ window.addEventListener("wheel", (event) => {
 
 // initialize everything
 setupFeedsMenu();
-(shuffle ? loadAllPosts() : loadMorePosts()).then(() => moveTo(0));
+(loadAll ? loadAllPosts() : loadMorePosts()).then(() => moveTo(0));

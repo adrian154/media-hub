@@ -26,10 +26,6 @@ module.exports = class {
         this.bucket = bucket;
     }
 
-    get name() {
-        return `S3-like (bucket="${this.bucket}")`;
-    }
-
     async get(after) {
         return (await listObjects(this.bucket, after)).Contents.map(entry => ({
             type: "image",

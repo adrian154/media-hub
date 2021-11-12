@@ -7,6 +7,11 @@ const debug = document.getElementById("debug");
 // parse url
 const url = new URL(window.location);
 const feedURL = `/feeds/${encodeURIComponent(url.searchParams.get("feed"))}`;
+const shuffle = url.searchParams.get("shuffle");
+
+// filter stuff
+const filter = url.searchParams.get("filter")?.split(" ");
+const loadAll = shuffle || filter;
 
 // slideshow state
 const posts = [];
@@ -14,15 +19,14 @@ const slides = new Map();
 let index = 0,
     loading = false,
     error = false,
-    zoomed = false,
-    shuffle = url.searchParams.get("shuffle");
+    zoomed = false;
 
 // update the post info section
 const updatePostInfo = () => {
     const post = posts[index];
     if(post) {
         postPosition.textContent = `${index + 1} / ${posts.length}`;
-        postLink.href = post.url;
+        postLink.href = post.permalink || post.url;
         postLink.textContent = post.title || "untitled";
     }
 };
@@ -92,7 +96,7 @@ const createSlide = (post) => {
 // load more posts
 const loadMorePosts = async () => {
 
-    if(loading || shuffle) return;
+    if(loading || loadAll) return;
 
     loading = true;
     setStatusText("Fetching more posts...");
@@ -115,7 +119,7 @@ const loadMorePosts = async () => {
 const loadAllPosts = async () => {
 
     let after = null;
-    const shuffledPosts = [];
+    let shuffledPosts = [];
     
     // start loading
     loading = true;
@@ -136,12 +140,20 @@ const loadAllPosts = async () => {
 
     }
 
-    // shuffle
-    for(let i = 0; i < shuffledPosts.length - 2; i++) {
-        const j = Math.floor(Math.random() * (shuffledPosts.length - i)) + i;
-        const temp = shuffledPosts[j];
-        shuffledPosts[j] = shuffledPosts[i];
-        shuffledPosts[i] = temp;
+    // filters work for post type too :)
+    if(filter) {
+        shuffledPosts = shuffledPosts.filter(post => post.tags?.reduce((a, tag) => a || filter.includes(tag), false) || filter.includes(post.type));
+    }
+
+    console.log(shuffledPosts);
+
+    if(shuffle) {
+        for(let i = 0; i < shuffledPosts.length - 2; i++) {
+            const j = Math.floor(Math.random() * (shuffledPosts.length - i)) + i;
+            const temp = shuffledPosts[j];
+            shuffledPosts[j] = shuffledPosts[i];
+            shuffledPosts[i] = temp;
+        }
     }
 
     // add the shuffled posts to the 
@@ -150,11 +162,6 @@ const loadAllPosts = async () => {
     loading = false;
     setStatusText();
 
-};
-
-const shuffleRedirect = () => {
-    url.searchParams.set("shuffle", 1);
-    window.location.href = url.href;
 };
 
 const moveTo = (pos) => {
@@ -186,8 +193,11 @@ const moveTo = (pos) => {
     const current = slides.get(posts[index]);
 
     // unzoom and hide
-    current.classList.remove("shown");
-    current.classList.remove("zoomed-in");
+    if(current) {
+        current.classList.remove("shown");
+        current.classList.remove("zoomed-in");
+    }
+
     zoomed = false;
 
     // move

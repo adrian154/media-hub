@@ -1,4 +1,4 @@
 # a few obvious suspects...
 node_modules/
+data/
 config.json
-feeds.js

@@ -6,17 +6,23 @@ const redditAuth = new RedditAuth(config);
 
 module.exports = class {
 
-    constructor(feedPath) {
-        this.feedPath = feedPath;
-    }
+    constructor(params) {
 
-    get name() {
-        return `Reddit (feed="${this.feedPath}")`;
+        this.feedPath = "https://oauth.reddit.com";
+
+        if(params.subreddit) {
+            this.feedPath += `/r/${params.subreddit}`;
+        } else if(params.subreddits) {
+            this.feedPath += `/r/${params.subreddits.map(encodeURIComponent).join("+")}`;
+        } else if(params.feed) {
+            this.feedPath += `/user/${redditAuth.user.username}/${params.feed}`;
+        }
+
     }
 
     async get(after) {
 
-        const resp = await fetch(`https://oauth.reddit.com/${this.feedPath}?limit=100&raw_json=1${after ? `&after=${after}` : ""}`, {
+        const resp = await fetch(`${this.feedPath}?limit=100&raw_json=1${after ? `&after=${after}` : ""}`, {
             method: "GET",
             headers: {
                 "User-Agent": "mediahub",
