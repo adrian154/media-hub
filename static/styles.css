@@ -125,6 +125,14 @@ a:hover {
     text-align: right;
 }
 
+#feeds-menu button {
+    border: none;
+    background: none;
+    color: #ffffff; /* TODO: make a theme variable */
+    font-weight: bold;
+    font-family: inherit;
+}
+
 #feeds {
     display: none;
 }
@@ -146,6 +154,6 @@ a:hover {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    filter: blur(20px);
+    filter: blur(16px);
     z-index: -1;
 }

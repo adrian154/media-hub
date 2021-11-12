@@ -3,7 +3,7 @@ const express = require("express");
 
 // local deps
 const config = require("./config.json");
-const feeds = require("./feeds.js");
+const feeds = require("./data/feeds.js");
 
 // user facing frontend
 const app = express();
@@ -12,10 +12,6 @@ if(config.proxy) app.enable("trust proxy");
 // print out some debug info for sanity purposes
 const version = require("child_process").execSync("git rev-parse --short HEAD").toString().trim();
 console.log(`Running MediaHub version ${version}`);
-console.log("Feeds:");
-for(const feed in feeds) {
-    console.log(`* ${feed}: ${feeds[feed].name}`);
-}
 
 // authentication middleware
 app.use((req, res, next) => {
@@ -59,7 +55,12 @@ app.get("/feeds/:feed", async (req, res) => {
 
 // catch errant requests
 app.use((req, res, next) => {
-    res.redirect("/");
+    res.status(404).redirect("/");
+});
+
+app.use((err, req, res, next) => {
+    res.sendStatus(500);
+    console.error(err);
 });
 
 // listen on localhost
