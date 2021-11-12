@@ -1,4 +1,4 @@
-// load options
+// parse options
 const readOption = (name, defaultValue) => {
     const value = localStorage.getItem(name);
     if(value) return value;
