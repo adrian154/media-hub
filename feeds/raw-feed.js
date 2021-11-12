@@ -1,4 +1,4 @@
-const CHUNK_SIZE = 5;
+const CHUNK_SIZE = 100;
 
 module.exports = class {
 

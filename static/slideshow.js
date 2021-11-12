@@ -56,6 +56,7 @@ const createPost = (post) => {
             div.appendChild(img);
             const box = img.getBoundingClientRect();
             if(img.naturalWidth > box.width || img.naturalHeight > box.height) {
+                console.log(img.naturalWidth, img.naturalHeight, img.width, img.height);
                 img.classList.add("zoomable");
             }
 
@@ -148,7 +149,7 @@ const loadAllPosts = async () => {
 
     // filters also include the post type as a tag
     if(filter) {
-        shuffledPosts = shuffledPosts.filter(post => post.tags?.reduce((a, tag) => a || filter.includes(tag), false) || filter.includes(post.type));
+        shuffledPosts = shuffledPosts.filter(post => post.tags?.reduce((a, tag) => a || filter.reduce((a, otherTag) => a || (otherTag.toUpperCase() === tag.toUpperCase()), false), false) || filter.includes(post.type));
     }
 
     if(shuffle) {
@@ -173,9 +174,9 @@ const moveTo = (destPos) => {
     if(destPos < 0 || destPos >= posts.length) return;
 
     // remove posts that are too far from the current one
-    for(const [position, post] of displayedPosts.entries()) {
+    for(const [position, slide] of displayedPosts.entries()) {
         if(Math.abs(position - destPos) > LOAD_RANGE) {
-            post.element?.remove();
+            slide.remove();
             displayedPosts.delete(position);
         }
     }
@@ -190,19 +191,18 @@ const moveTo = (destPos) => {
 
         const post = posts[pos];
         if(post) {
-            const data = {post};
-            data.slide = createPost(post);
-            slideshow.append(data.slide);
-            displayedPosts.set(pos, data);
+            const slide = createPost(post);
+            slideshow.append(slide);
+            displayedPosts.set(pos, slide);
         }
 
     }
 
     // clean up previous slide and hide it
     const old = displayedPosts.get(index);
-    if(old.slide && destPos !== index) {
-        old.slide.classList.remove("shown");
-        old.slide.classList.remove("zoomed-in");
+    if(old && destPos !== index) {
+        old.classList.remove("shown");
+        old.classList.remove("zoomed-in");
     }
 
     // re-enable scroll nav
@@ -213,7 +213,7 @@ const moveTo = (destPos) => {
 
     // show new post
     const current = displayedPosts.get(index);
-    current.slide.classList.add("shown");
+    current.classList.add("shown");
 
     // if we've gotten close to the end, start fetching more posts
     if(posts.length - index < LOAD_RANGE) fetchMorePosts(); 

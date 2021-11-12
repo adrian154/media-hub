@@ -34,7 +34,7 @@ window.addEventListener("keydown", (event) => {
         case "ArrowLeft": moveTo(index - 1); break;
         case "ArrowRight": moveTo(index + 1); break;
         case "Control": ctrlHeld = true; break;
-        case "l": if(ctrlHeld) loadMorePosts(); event.preventDefault(); break;
+        case "l": if(ctrlHeld) fetchMorePosts(); event.preventDefault(); break;
         case "g": if(ctrlHeld) moveTo(Number(prompt("Which post?"))); event.preventDefault(); break;
     }
 });
