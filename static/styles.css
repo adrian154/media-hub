@@ -13,7 +13,8 @@ body {
 
 /* !important is used sparingly to suppress any disobedient embeds */
 .slide {
-    display: none;
+    display: flex;
+    visibility: hidden;
     position: absolute;
     top: 0;
     left: 0;
@@ -22,13 +23,21 @@ body {
     overflow: scroll;
 }
 
+.embed {
+    display: none;
+}
+
 /* FIXME: compatibility with non-webkit browsers!! */
 .slide::-webkit-scrollbar {
     display: none;
 }
 
 .shown {
-    display: flex;
+    visibility: visible;
+}
+
+.shown .embed {
+    display: initial;
 }
 
 /* positioning for slide content */

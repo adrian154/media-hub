@@ -45,35 +45,49 @@ const createPost = (post) => {
 
     if(post.type === "image") {
 
-        const img = document.createElement("img");
-        
-        img.referrerPolicy = "no-referrer"; // necessary to avoid ratelimiting sometimes
-        img.src = post.url;
-        
-        img.addEventListener("load", (event) => {
+        if(post.url.includes(".mp4")) {
 
-            // if the image is too small mark it as zoomable
-            div.appendChild(img);
-            const box = img.getBoundingClientRect();
-            if(img.naturalWidth > box.width || img.naturalHeight > box.height) {
-                console.log(img.naturalWidth, img.naturalHeight, img.width, img.height);
-                img.classList.add("zoomable");
+            const video = document.createElement("video");
+            const source = document.createElement("source");
+            source.src = post.url;
+            source.type = "video/mp4";
+            video.append(source);
+            video.controls = true;
+            div.append(video);
+
+        } else {
+
+            const img = document.createElement("img");
+            
+            img.referrerPolicy = "no-referrer"; // necessary to avoid ratelimiting sometimes
+            img.src = post.url;
+            
+            img.addEventListener("load", (event) => {
+
+                // if the image is too small mark it as zoomable
+                div.appendChild(img);
+                const box = img.getBoundingClientRect();
+                if(img.naturalWidth > box.width || img.naturalHeight > box.height) {
+                    console.log(img.naturalWidth, img.naturalHeight, img.width, img.height);
+                    img.classList.add("zoomable");
+                }
+
+            });
+
+            // zoom handler
+            img.addEventListener("click", (event) => {
+                if(img.classList.contains("zoomable")) {
+                    zoomed = div.classList.toggle("zoomed-in");
+                }
+            });
+
+            if(FANCY_BACKGROUND) {
+                const bg = document.createElement("img");
+                bg.classList.add("background");
+                bg.src = post.url;
+                div.appendChild(bg);
             }
 
-        });
-
-        // zoom handler
-        img.addEventListener("click", (event) => {
-            if(img.classList.contains("zoomable")) {
-                zoomed = div.classList.toggle("zoomed-in");
-            }
-        });
-
-        if(FANCY_BACKGROUND) {
-            const bg = document.createElement("img");
-            bg.classList.add("background");
-            bg.src = post.url;
-            div.appendChild(bg);
         }
 
     } else if(post.type === "embed") {
@@ -122,6 +136,8 @@ const fetchMorePosts = async () => {
 
 };
 
+const matchIgnoreCase = (A, B) => A.localeCompare(B, "en", {sensitivity: "base"}) == 0;
+
 // used with shuffle
 const loadAllPosts = async () => {
 
@@ -149,7 +165,29 @@ const loadAllPosts = async () => {
 
     // filters also include the post type as a tag
     if(filter) {
-        shuffledPosts = shuffledPosts.filter(post => post.tags?.reduce((a, tag) => a || filter.reduce((a, otherTag) => a || (otherTag.toUpperCase() === tag.toUpperCase()), false), false) || filter.includes(post.type));
+        shuffledPosts = shuffledPosts.filter(post => {
+            for(const tag of filter) {
+                
+                if(matchIgnoreCase(post.type, tag)) {
+                    return true;
+                }
+
+                // match MP4s and GIFs
+                if(matchIgnoreCase(tag, "embed") && (post.url?.includes(".mp4") || post.url?.includes(".gif"))) {
+                    return true;
+                }
+
+                // regex tag match
+                if(tag[0] === "/") {
+                    const regex = new RegExp(tag.substring(1), "i");
+                    return post.tags?.reduce((a, postTag) => a || postTag.match(regex), false);
+                }
+
+                // regular match
+                return post.tags?.reduce((a, postTag) => a || matchIgnoreCase(tag, postTag), false);
+
+            }
+        });
     }
 
     if(shuffle) {
