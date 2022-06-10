@@ -47,7 +47,7 @@ app.get("/feeds", async (req, res) => {
 
 app.get("/feeds/:feed", async (req, res) => {
     if(feeds[req.params.feed]) {
-        res.json(await feeds[req.params.feed].get(req.query.after));
+        res.json(await feeds[req.params.feed].get(req.query.after, req.query));
     } else {
         res.sendStatus(404);
     }

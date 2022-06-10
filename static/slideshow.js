@@ -6,7 +6,12 @@ const debug = document.getElementById("debug");
 
 // url parsing
 const url = new URL(window.location);
-const feedURL = `/feeds/${encodeURIComponent(url.searchParams.get("feed"))}`;
+const feedURL = (() => {
+    const u = new URL(`/feeds/${encodeURIComponent(url.searchParams.get("feed"))}`, window.location.origin);
+    url.searchParams.forEach((val, key) => u.searchParams.set(key, val));
+    console.log(u);
+    return u;
+})();
 const shuffle = Boolean(url.searchParams.get("shuffle"));
 const filter = url.searchParams.get("filter")?.split(" ");
 
@@ -123,7 +128,9 @@ const fetchMorePosts = async () => {
     setStatusText("Fetching more posts...");
 
     const after = posts[posts.length - 1]?.id;
-    const resp = await fetch(`${feedURL}${after ? `?after=${after}` : ""}`);
+    if(after)
+        feedURL.searchParams.set("after", after);
+    const resp = await fetch(feedURL);
     if(resp.ok) {
         const newPosts = await resp.json();
         posts.push(...newPosts);
@@ -150,7 +157,8 @@ const loadAllPosts = async () => {
 
     while(true) {
 
-        const resp = await fetch(`${feedURL}${after ? `?after=${after}` : ""}`);  
+        feedURL.searchParams.set("after", after);
+        const resp = await fetch(feedURL);  
         const newPosts = await resp.json();
         
         if(newPosts.length > 0) {

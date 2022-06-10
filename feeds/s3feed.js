@@ -12,7 +12,7 @@ const listObjects = (bucket, after) => {
         s3.listObjectsV2({
             Bucket: bucket,
             StartAfter: after,
-            MaxKeys: 50
+            /*MaxKeys: 50*/
         }, (err, data) => {
             if(err) reject(err);
             resolve(data);

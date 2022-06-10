@@ -6,20 +6,6 @@ const redditAuth = new RedditAuth(config);
 
 module.exports = class {
 
-    constructor(params) {
-
-        this.feedPath = "https://oauth.reddit.com";
-
-        if(params.subreddit) {
-            this.feedPath += `/r/${params.subreddit}`;
-        } else if(params.subreddits) {
-            this.feedPath += `/r/${params.subreddits.map(encodeURIComponent).join("+")}`;
-        } else if(params.feed) {
-            this.feedPath += `/user/${params.user || redditAuth.user.username}/${params.feed}`;
-        }
-
-    }
-
     async convertImgurAlbum(post, url) {
         
         // fetch the images from the Imgur API
@@ -57,8 +43,6 @@ module.exports = class {
     }
 
     async convertPost(entry) {
-            
-        console.log(JSON.stringify(entry));
 
         const redditPost = entry.data;
         const post = {
@@ -94,9 +78,28 @@ module.exports = class {
 
     }
 
-    async get(after) {
+    async get(after, params) {
 
-        const resp = await fetch(`${this.feedPath}?limit=50&raw_json=1${after ? `&after=${after}` : ""}`, {
+        let feedPath = "https://oauth.reddit.com";
+
+        if(params.subreddit) {
+            feedPath += `/r/${params.subreddit}`;
+        } else if(params.subreddits) {
+            feedPath += `/r/${params.subreddits.map(encodeURIComponent).join("+")}`;
+        } else if(params.f) {
+            feedPath += `/user/${params.user || redditAuth.user.username}/${params.f}`;
+        }
+
+        const u = new URL(feedPath);
+        if(params.t) u.searchParams.set("t", params.t);
+        if(params.s) u.searchParams.set("sort", params.s);
+        u.searchParams.set("limit", 50);
+        u.searchParams.set("raw_json", 1);
+        u.searchParams.set("after", after);
+
+        console.log(u);
+        
+        const resp = await fetch(u, {
             method: "GET",
             headers: {
                 "User-Agent": "mediahub",
@@ -109,6 +112,7 @@ module.exports = class {
         }
 
         const items = await resp.json();
+        //console.log(items.data.children);
         return (await Promise.all(items.data.children.map(async entry => this.convertPost(entry)))).flat().filter(Boolean);
 
     }
