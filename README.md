@@ -1,3 +1,3 @@
-# media-hub
+# DEPRECATED
 
-TODO: custom theme loading and autoplay
+Check out the replacement, [Photobox](https://github.com/adrian154/photobox).
